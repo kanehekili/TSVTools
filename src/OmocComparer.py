@@ -28,7 +28,7 @@ class MainFrame(QtWidgets.QMainWindow):
         self.__qapp = qapp
         self.qtQueueRunning = False
         self.sourceFile=None
-        self.model
+        self.model=None
         self.setWindowIcon(getAppIcon())
         self.initUI()
         self.centerWindow()
@@ -46,10 +46,22 @@ class MainFrame(QtWidgets.QMainWindow):
         if self.qtQueueRunning:
             return
         self.qtQueueRunning = True
-        self._initModel()
+        #self._initModel()
         
     def initUI(self):
-        pass
+        self.uiInfoLabel=QTextEdit(self)
+        self.uiInfoLabel.setReadOnly(True)
+        self.uiInfoLabel.setAcceptRichText(True)
+        self.uiInfoLabel.setText("<h3>Omoc converter<h3> ..setting up")
+        self.uiInfoLabel.setAlignment(Qt.AlignmentFlag.AlignTop)
+        box = QtWidgets.QVBoxLayout();
+        box.addWidget(self.uiInfoLabel)        
+        # Without central widget it won't work
+        wid = QtWidgets.QWidget(self)
+        self.setCentralWidget(wid)    
+        # TODO: self.resize
+        wid.setLayout(box)
+        self.resize(400, 450)
 
 def getAppIcon():
     return QtGui.QIcon('./icons/TSV-import.png')
@@ -87,6 +99,14 @@ def main(args):
         #    headlessImport(fn)
         #    return 0
         Log.info("--- Start Omoc comparer ---")
+        argv = sys.argv
+        app = QApplication(argv)
+        app.setWindowIcon(getAppIcon())
+        WIN = MainFrame(app)  # keep python reference!
+        # ONLY windoze, if ever: app.setStyleSheet(winStyle())
+        # app.setStyle(QtWidgets.QStyleFactory.create("Fusion"));
+        app.exec()
+        
     except:
         with open('/tmp/error.log','a') as f:
             f.write(traceback.format_exc())
@@ -96,4 +116,5 @@ def main(args):
         sys_tuple = sys.exc_info()
         QtWidgets.QMessageBox.critical(None, "Error!", str(sys_tuple[1]))
 if __name__ == '__main__':
-    pass
+    sys.excepthook = handle_exception
+    sys.exit(main(parse()))
