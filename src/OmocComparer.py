@@ -252,7 +252,7 @@ class MainFrame(QtWidgets.QMainWindow):
         msg = worker.msg 
         Log.info("Long operation done:%s",msg)
         if msg:
-            self.uiInfoLabel.setHtml('<p style="color:red;">Fehler:  %s</p><br>Nicht nochmal probieren -> Melden macht frei!'%(msg))
+            self.uiInfoLabel.setHtml('<p style="color:red;"><h4>Fehler</h4>%s</p><br>Nicht nochmal probieren -> Melden macht frei!'%(msg))
         else:
             self._reportResults()
         worker.quit()
@@ -303,6 +303,7 @@ class MainFrame(QtWidgets.QMainWindow):
 
     def readLastXPath(self, part):
         if not self.configJson:
+            self.configJson={}
             cfg = self._configPath()
             if OSTools.fileExists(cfg):
                 with open(cfg) as jsonFile:
@@ -337,7 +338,7 @@ class LongRunningOperation(QtCore.QThread):
             self.function(*self.arguments)
         except Exception as ex:
             Log.exception("***Error in LongRunningOperation***")
-            self.msg = str(ex)
+            self.msg = "Daten konnten nicht gelesen werden"
         finally:
             self.signal.emit(self)
 
