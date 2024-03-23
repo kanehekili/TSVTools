@@ -21,7 +21,7 @@ The OmocComparer is the UI, using the OCModel for infos.
 ##### WorkSheetComparer
 Reads two files (comparable to "Meld") and produces a data set of differences.
 
-###### WorkSheetWriter
+##### WorkSheetWriter
 Gets the data from the comparer and writes the results into a xslx file.
 
 
