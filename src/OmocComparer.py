@@ -10,8 +10,10 @@ from PyQt6 import QtWidgets, QtGui, QtCore
 import OCModel
 from OCModel import Log, OSTools, WorkSheetComparer, WorkSheetWriter
 from time import sleep
+from _datetime import datetime
+from PyQt5.Qt import QTextBrowser
 
-VERSION="0.9"
+VERSION="0.9.1"
 WIN=None
 
 '''
@@ -133,9 +135,16 @@ class MainFrame(QtWidgets.QMainWindow):
         self.uiLkrButton.setToolTip("Suche passende Landkreis Datei")
         self.uiLkrButton.clicked.connect(self._onLkrFileClicked)
 
-        self.uiInfoLabel = QTextEdit(self)
+        self.uiInfoLabel = QtWidgets.QTextBrowser(self)
         self.uiInfoLabel.setReadOnly(True)
-        self.uiInfoLabel.setAcceptRichText(True)
+        #self.uiInfoLabel.setAcceptRichText(True)
+        #--test--
+        #file="/home/matze/2024-03-22-FOS.xlsx"
+        #link = '<a href="{}">Option_1</a>'.format(file)
+        #self.uiInfoLabel.insertHtml(link)
+        self.uiInfoLabel.setOpenLinks(False)
+        self.uiInfoLabel.anchorClicked.connect(self._onHandleLinks)
+        #--end test
         self.uiInfoLabel.setHtml(self._intro())
         self.uiInfoLabel.setAlignment(Qt.AlignmentFlag.AlignTop)
 
@@ -193,6 +202,12 @@ class MainFrame(QtWidgets.QMainWindow):
         
         return mainBox
 
+
+    def _onHandleLinks(self,url):
+        if not url.scheme():
+            url = QtCore.QUrl.fromLocalFile(url.toString())
+        QtGui.QDesktopServices.openUrl(url)
+        
     @QtCore.pyqtSlot()        
     def _onOmocFileClicked(self):
         targetPath = self.readLastXPath(self.OMOC)
@@ -223,7 +238,6 @@ class MainFrame(QtWidgets.QMainWindow):
         self.close()
         
     def _onTypeChanged(self, aString):
-        self.model.location = aString
         self._updateCompareButton()
 
     def _onCompareClicked(self):
@@ -239,11 +253,12 @@ class MainFrame(QtWidgets.QMainWindow):
         self.model.readLkr(self.lkrFile)
         self.model.compare()
         hp = OSTools.getHomeDirectory()
-        #tp = OSTools.joinPathes(path,"OMOC")
-        loc = self.model.location
-        self.tmpSaveTarget=OSTools.joinPathes(hp,loc+".xlsx")
+        loc = self.uiTypeCombo.currentText()
+        fn = datetime.now().strftime("%Y-%m-%d-")+loc
+        
+        self.tmpSaveTarget=OSTools.joinPathes(hp,fn+".xlsx")
         wr=WorkSheetWriter(self.tmpSaveTarget)
-        wr.export(loc,("Datum","OMOC","LKR"),self.model.data)
+        wr.export(loc,("Tag","Datum","OMOC","LKR"),self.model.data)
         
         
         
@@ -261,11 +276,13 @@ class MainFrame(QtWidgets.QMainWindow):
         self._prepareNextRun() 
 
     def _reportResults(self):
+        #This will work on windoze:
+        url = QtCore.QUrl.fromLocalFile(self.tmpSaveTarget).toString()
         txt=[]
         txt.append("<h4> Vorgang beendet</h4>")
         txt.append("Buchungen gleich: %d"%(self.model.statistics[0]))
         txt.append("<br>Buchungen falsch: %d"%(self.model.statistics[1]))
-        txt.append("<br>Die Ergebnisdatei wurde unter %s abgelegt"%(self.tmpSaveTarget))
+        txt.append('<br>Die Ergebnisdatei wurde unter [Click] <p><a href="%s">%s</a></p> abgelegt'%(url,self.tmpSaveTarget))
         Log.info("Statistics Same:%d diff: %d",self.model.statistics[0],self.model.statistics[1])
         self.uiInfoLabel.setHtml(''.join(txt))
 
@@ -286,7 +303,8 @@ class MainFrame(QtWidgets.QMainWindow):
     def _updateCompareButton(self):
         if not self.uiCompareButton:
             return
-        if not self.model.location.startswith("-"): 
+        loc = self.uiTypeCombo.currentText()
+        if not loc.startswith("-"): 
             if len(self.uiOmocFile.text()) > 3 and len(self.uiLkrFile.text()) > 3:
                 self.uiCompareButton.setEnabled(True)
                 return
@@ -346,7 +364,6 @@ class LongRunningOperation(QtCore.QThread):
         self.start()  # invokes run - process pending QT events
         sleep(0.5)
         QtCore.QCoreApplication.processEvents() 
-        print("Events processed")   
 
 
 def getAppIcon():

@@ -9,6 +9,7 @@ from openpyxl import load_workbook
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from datetime import datetime
+import locale
 from datetime import timedelta
 from time import sleep
 from enum import Enum
@@ -20,6 +21,9 @@ import logging
 from logging.handlers import RotatingFileHandler
 import subprocess
 from subprocess import Popen
+
+locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')
+OMOC_BLOCKER=("Schulsport","Lehrersport","Alpenverein","Post-SV","gesperrt", "SVL")
 
 class OSTools():
     #singleton, class methods only
@@ -172,16 +176,11 @@ class WorksheetReader():
             obj.row=singleRow
             if not obj.isBlocked():
                 fullSheet.append(obj)        
-            '''
-            for cell in row:
-                saveVal=cell.value if cell.value else '' 
-                singleRow.append(saveVal)
-            fullSheet.append(singleRow)
-            '''
+
         cntMbrs=len(fullSheet)
         head=fullSheet.pop(0)
         cntCols = len(head.FIELDS)
-        Log.info("Read %d entries, with %d columns each",cntMbrs,cntCols)
+        Log.info("Read %d entries (with head), with %d columns each",cntMbrs,cntCols)
         wb.close()        
         return fullSheet   
 
@@ -189,7 +188,7 @@ class WorksheetReader():
 class OmocAdapter():
     FIELDS = (1,2,3,5,6) #A=0
     ID=5
-    BLOCKED=("Schulsport","Post-SV","gesperrt", "SVL")
+    
     def __init(self,tupleRow):
         self.row=tupleRow()
         
@@ -221,9 +220,8 @@ class OmocAdapter():
     
     def isBlocked(self):
         key = self.row[3]
-        for item in self.BLOCKED:
+        for item in OMOC_BLOCKER:
             if item in key:
-                #print("Blocked:",key)
                 return True
         return False
         
@@ -234,7 +232,8 @@ class OmocAdapter():
         return "Omoc: %s [%s] - %s"%(self.fromDate(),self.fromRoundDate(),self.toDate())
     
     def asDisplayString(self):
-        return "%s > %s"%(self.fromDate(),self.toDate())
+        #return "%s > %s"%(self.fromDate(),self.toDate())
+        return "%s > %s"%(self.row[1],self.row[2])
 
 class LkrAdapter():
     #03.07.2023-16:30-18:00-Berufsschule Weilheim Sporthalle-3-15
@@ -285,7 +284,8 @@ class LkrAdapter():
         return "LKR: %s [%s] - %s "%(self.fromDate(),self.fromRoundDate(),self.toDate())
     
     def asDisplayString(self):
-        return "%s > %s"%(self.fromDate(),self.toDate())
+        #return "%s > %s"%(self.fromDate(),self.toDate())
+        return "%s > %s"%(self.row[1],self.row[2])
     
 
 class BookingEntry():
@@ -342,9 +342,8 @@ class WorkSheetComparer():
     def __init__(self):
         self.omocSheet=None
         self.lkrSheet=None
-        self.data=[] #Date, omoc,LKR
+        self.data=[] #Weekday Date, omoc,LKR
         self.statistics=() #count same,count different == Statistics 
-        self.location = None #Kontext for the Writen, later. which location
         
     def readOmoc(self,omocPath):
         wr=WorksheetReader(omocPath)
@@ -375,23 +374,24 @@ class WorkSheetComparer():
                 same += 1
             else:
                 #print(key,"O:",bookingEntry.omc," L:",bookingEntry.lkr)
-                self.data.append([str(key),bookingEntry.omcDisplay(),bookingEntry.lkrDisplay()])
+                day = " "+key.strftime("%a")+" "
+                self.data.append([day,str(key),bookingEntry.omcDisplay(),bookingEntry.lkrDisplay()])
                 diff += 1
      
         self.statistics=(same,diff)
-        #print("Same: %d diff: %d"%(same,diff))
                 
            
 def test1():
     path = OSTools.getLocalPath(__file__)
-    #p1 = OSTools.joinPathes(path, "testData", "OMOC Daten","20240116_FOS_OMOC.xlsx")
-    #p2 = OSTools.joinPathes(path, "testData", "Landkreislisten","FOS-Landkreis.xlsx")
+    path = os.path.split(path)[0]
+    p1 = OSTools.joinPathes(path, "testData", "OMOC Daten","20240116_FOS_OMOC.xlsx")
+    p2 = OSTools.joinPathes(path, "testData", "Landkreislisten","FOS-Landkreis.xlsx")
     #p1 = OSTools.joinPathes(path, "testData", "OMOC Daten","20240116_Jahnhalle_OMOC.xlsx")
     #p2 = OSTools.joinPathes(path, "testData", "Landkreislisten","Jahnhalle-Landkreis.xlsx")
     #p1 = OSTools.joinPathes(path, "testData", "OMOC Daten","20240116_Gymnasium_OMOC.xlsx")
     #p2 = OSTools.joinPathes(path, "testData", "Landkreislisten","GYMLandkreis.xlsx")
-    p1 = OSTools.joinPathes(path, "testData", "OMOC Daten","20240116_Hallenbad_OMOC.xlsx")
-    p2 = OSTools.joinPathes(path, "testData", "Landkreislisten","Schwimmbad-Landkreis.xlsx")
+    #p1 = OSTools.joinPathes(path, "testData", "OMOC Daten","20240116_Hallenbad_OMOC.xlsx")
+    #p2 = OSTools.joinPathes(path, "testData", "Landkreislisten","Schwimmbad-Landkreis.xlsx")
     
     wc = WorkSheetComparer()
     wc.readOmoc(p1)
