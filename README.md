@@ -2,7 +2,7 @@
 
 ## Tools for the TSV 1847 e.V. Weilheim
 
-All tools need python3, which can be downloaded from the python site. One python runtime is included [here](https://github.com/kanehekili/TSVTools/releases/download/V0.9/OmocC.zip). In addition pyQt6 has to installed: (in Terminal or Windoze cmd) :
+All tools need python3, which can be downloaded from the python site. One python runtime is included [here](https://github.com/kanehekili/TSVTools/releases/download/V0.9/OmocC.zip). In addition pyQt6 has to be installed: (in Terminal or Windoze cmd) :
 
 pip install pyqt6
 
@@ -14,6 +14,8 @@ pip install pyqt6
 Compare booked times of a sport gym location owned by old white officals with the real occupation saved on a cloud instance (omoc). The software is only able to compare to xsls files, since it is based on openpyxl. Works with Textmaker,LibreOffice and MS.
 
 Basic idea is to compare dates and locations in order to pay only the real time used. The input files are propriatatry. This software can therefore only used as template for similar proejcts.
+
+The resulting file can be opened by selecting a displayed link.
 
 #### Design Model:
 The OmocComparer is the UI, using the OCModel for infos.
