@@ -11,11 +11,14 @@ pip install pyqt6
 
 ![Download V0.9.1 update (no runtime for sane OS )](https://github.com/kanehekili/TSVTools/releases/tag/V0.9.1)
 
+![Screenshot](https://github.com/kanehekili/TSVTools/blob/main/OmocX1.png)
+
 Compare booked times of a sport gym location owned by old white officals with the real occupation saved on a cloud instance (omoc). The software is only able to compare to xsls files, since it is based on openpyxl. Works with Textmaker,LibreOffice and MS.
 
 Basic idea is to compare dates and locations in order to pay only the real time used. The input files are propriatatry. This software can therefore only used as template for similar proejcts.
 
 The resulting file can be opened by selecting a displayed link.
+![Screenshot](https://github.com/kanehekili/TSVTools/blob/main/OmocX2.png)
 
 #### Design Model:
 The OmocComparer is the UI, using the OCModel for infos.
