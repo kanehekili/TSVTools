@@ -20,6 +20,8 @@ Basic idea is to compare dates and locations in order to pay only the real time 
 The resulting file can be opened by selecting a displayed link.
 ![Screenshot](https://github.com/kanehekili/TSVTools/blob/main/OmocX2.png)
 
+There are not intentions to support any language support. - The stuff is german - hardcoded
+
 #### Design Model:
 The OmocComparer is the UI, using the OCModel for infos.
 
