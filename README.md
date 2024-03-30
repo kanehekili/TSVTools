@@ -2,14 +2,18 @@
 
 ## Tools for the TSV 1847 e.V. Weilheim
 
-All tools need python3, which can be downloaded from the python site. One python runtime is included [here](https://github.com/kanehekili/TSVTools/releases/download/V0.9/OmocC.zip). In addition pyQt6 has to be installed: (in Terminal or Windoze cmd) :
+All tools need python3, which can be downloaded from the python site. 
+
+The first zip file of each tool will have a python.exe included for Windows users. Later versions include the code, but no python runtime 
+
+In addition pyQt6 has to be installed: (in Terminal or Windoze cmd) :
 
 pip install pyqt6
 
 ### Omoc Comparer
-![Download with python.exe V0.9](https://github.com/kanehekili/TSVTools/releases/download/V0.9/OmocC.zip)
+![Download with python.exe V0.9](https://github.com/kanehekili/TSVTools/releases/tag/V0.9)
 
-![Download V0.9.1 update (no runtime for sane OS )](https://github.com/kanehekili/TSVTools/releases/tag/V0.9.1)
+![Download V0.9.1 update (code only)](https://github.com/kanehekili/TSVTools/releases/tag/V0.9.1)
 
 ![Screenshot](https://github.com/kanehekili/TSVTools/blob/main/OmocX1.png)
 
@@ -31,11 +35,10 @@ Reads two files (comparable to "Meld") and produces a data set of differences.
 ##### WorkSheetWriter
 Gets the data from the comparer and writes the results into a xslx file.
 
-
-
-Tested on Linux and Windoze(relcutantly). 
-
 ## Additional Libs:
 pip install openpyxl
+
+Runs on Linux and Windoze (no installer)
+
 
 ### More small apps will follow
