@@ -1,17 +1,16 @@
 '''
 Created on 18 Jan 2024
-QT6 implementation of Xcel sheet comparison by a retro "Landkreis" and a fairly modern web app
+QT6 implementation of Xcel sheet comparison by a retro "Landkreis" and an ancient web app
 @author: matze
 '''
 import traceback, os, argparse, sys, json
-from PyQt6.QtWidgets import QApplication, QTextEdit
+from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6 import QtWidgets, QtGui, QtCore
 import OCModel
 from OCModel import Log, OSTools, WorkSheetComparer, WorkSheetWriter
 from time import sleep
 from _datetime import datetime
-from PyQt5.Qt import QTextBrowser
 
 VERSION="0.9.1"
 WIN=None
@@ -54,56 +53,6 @@ class MainFrame(QtWidgets.QMainWindow):
         centerPoint = self.screen().availableGeometry().center()
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
-
-    '''
-    def __queueStarted(self, _state):
-        if self.qtQueueRunning:
-            return
-        self.qtQueueRunning = True
-        #self._initModel()
-    '''
-    '''    
-    def initUI(self):
-        self.init_toolbar()
-        self.uiInfoLabel=QTextEdit(self)
-        self.uiInfoLabel.setReadOnly(True)
-        self.uiInfoLabel.setAcceptRichText(True)
-        self.uiInfoLabel.setText("<h3>Omoc converter<\h3> <h4>Omoc Datei laden <img src=./icons/DownloadGreen.png width='26'> <br>Dazugehörige LKR Datei laden <img src=./icons/DownloadRed.png width='26'><\br><\h4>")
-        self.uiInfoLabel.setAlignment(Qt.AlignmentFlag.AlignTop)
-        box = QtWidgets.QVBoxLayout();
-        box.addWidget(self.uiInfoLabel)        
-        # Without central widget it won't work
-        wid = QtWidgets.QWidget(self)
-        self.setCentralWidget(wid)    
-        # TODO: self.resize
-        wid.setLayout(box)
-        self.resize(400, 450)
-        
-    def init_toolbar(self):
-        self.omocAction = QtGui.QAction(QtGui.QIcon('./icons/DownloadGreen.png'), 'Omoc Datei', self)
-        self.omocAction.setShortcut('Ctrl+O')
-        self.omocAction.triggered.connect(self._onOmocFileClicked)
-
-        self.lkrAction = QtGui.QAction(QtGui.QIcon('./icons/DownloadRed.png'), 'LKR Datei', self)
-        self.lkrAction.setShortcut('Ctrl+L')
-        self.lkrAction.triggered.connect(self._onLkrFileClicked)
-
-
-        self.stopAction = QtGui.QAction(QtGui.QIcon('./icons/dialog-close.png'), 'Schließen', self)
-        self.stopAction.setShortcut('Ctrl+H')
-        self.stopAction.triggered.connect(self.goodbye)
-        #self.stopAction.setEnabled(False)
-        
-        spacer = QtWidgets.QWidget();
-        spacer.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred);
-        
-        self.toolbar = self.addToolBar('Main')
-        self.toolbar.addAction(self.omocAction)
-        self.toolbar.addAction(self.lkrAction)
-        self.toolbar.addSeparator()
-        self.toolbar.addWidget(spacer);
-        self.toolbar.addAction(self.stopAction)   
-    '''     
 
     def initUI(self):
         
