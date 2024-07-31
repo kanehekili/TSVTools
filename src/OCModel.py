@@ -185,35 +185,56 @@ class WorksheetReader():
         return fullSheet   
 
 
-class OmocAdapter():
-    FIELDS = (1,2,3,5,6) #A=0
-    ID=5
-    
+class XLSAdapter():
     def __init(self,tupleRow):
         self.row=tupleRow()
-        
-    def fromDate(self):
-        raw=self._cleanDate() #has space in front..
-        hm = self.row[1]
-        return datetime.strptime(hm+raw,"%H:%M %d.%m.%Y")
 
+    def fromDate(self):
+        if self._isStringTime(self.row[0]):
+            raw=self._cleanDate() #has space in front..
+            hm = self.row[1]
+            return datetime.strptime(hm+raw,"%H:%M %d.%m.%Y")
+        #assuming datetime and datetime.time    
+        test = datetime.combine(self.row[0],self.row[1])
+        return test
+        
+        
     def fromRoundDate(self):
         raw=self.fromDate()
         #lkr sometimes has 35. Round that to 30
         return raw - timedelta(minutes=raw.minute %10)
-        
-    def toDate(self):    
-        raw=self._cleanDate()
-        hm = self.row[2]
-        return datetime.strptime(hm+raw,"%H:%M %d.%m.%Y")        
-    
+
+    def toDate(self):
+        if self._isStringTime(self.row[0]):    
+            raw=self._cleanDate()
+            hm = self.row[2]
+            return datetime.strptime(hm+raw,"%H:%M %d.%m.%Y")
+        #assuming datetime and datetime.time    
+        test = datetime.combine(self.row[0],self.row[2])
+        return test
+ 
+
     def toRoundDate(self):
         raw=self.toDate()
         #lkr sometimes has 35. Round that to 30
-        return raw - timedelta(minutes=raw.minute %10)     
-    
+        return raw - timedelta(minutes=raw.minute %10)  
+
     def timeDelta(self):
         return self.toRoundDate()-self.fromRoundDate()
+
+    def asDisplayString(self):
+        #return "%s > %s"%(self.fromDate(),self.toDate())
+        return "%s > %s"%(self.row[1],self.row[2])
+    
+    def _isStringTime(self, object):
+        return isinstance(object, str)
+
+class OmocAdapter(XLSAdapter):
+    FIELDS = (1,2,3,5,6) #A=0
+    ID=5
+    
+    def __init(self,tupleRow):
+        super(XLSAdapter, self).__init__(tupleRow)
     
     def _cleanDate(self):
         return self.row[0].split(',')[1]
@@ -230,41 +251,15 @@ class OmocAdapter():
     
     def __str__(self):
         return "Omoc: %s [%s] - %s"%(self.fromDate(),self.fromRoundDate(),self.toDate())
-    
-    def asDisplayString(self):
-        #return "%s > %s"%(self.fromDate(),self.toDate())
-        return "%s > %s"%(self.row[1],self.row[2])
 
-class LkrAdapter():
+
+class LkrAdapter(XLSAdapter):
     #03.07.2023-16:30-18:00-Berufsschule Weilheim Sporthalle-3-15
     FIELDS = (9,10,12,13,14,15) #A=0
 
     def __init(self,tupleRow):
-        self.row=tupleRow()
-        
-    def fromDate(self):
-        raw=self._cleanDate() #has space in front..
-        hm = self.row[1]
-        return datetime.strptime(hm+raw,"%H:%M %d.%m.%Y")
-    
-    def fromRoundDate(self):
-        raw=self.fromDate()
-        #lkr sometimes has 35. Round that to 30
-        return raw - timedelta(minutes=raw.minute %10)
-        
-    def toDate(self):    
-        raw=self._cleanDate()
-        hm = self.row[2]
-        return datetime.strptime(hm+raw,"%H:%M %d.%m.%Y")        
-    
-    def toRoundDate(self):
-        raw=self.toDate()
-        #lkr sometimes has 35. Round that to 30
-        return raw - timedelta(minutes=raw.minute %10)    
-    
-    def timeDelta(self):
-        return self.toRoundDate()-self.fromRoundDate()
-    
+        super(XLSAdapter, self).__init__(tupleRow)
+     
     def _cleanDate(self):
         return " "+self.row[0]
     
@@ -283,9 +278,7 @@ class LkrAdapter():
     def __str__(self):
         return "LKR: %s [%s] - %s "%(self.fromDate(),self.fromRoundDate(),self.toDate())
     
-    def asDisplayString(self):
-        #return "%s > %s"%(self.fromDate(),self.toDate())
-        return "%s > %s"%(self.row[1],self.row[2])
+
     
 
 class BookingEntry():

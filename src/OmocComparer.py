@@ -12,7 +12,12 @@ from OCModel import Log, OSTools, WorkSheetComparer, WorkSheetWriter
 from time import sleep
 from _datetime import datetime
 
-VERSION="0.9.1"
+'''
+31.07.24 Accept datetime and time string objects    0.9.2
+23.03.24 Stable implementation                      0.9.1  
+'''
+
+VERSION="0.9.2"
 WIN=None
 
 '''
