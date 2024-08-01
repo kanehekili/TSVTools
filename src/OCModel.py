@@ -11,12 +11,9 @@ from openpyxl.styles import Font
 from datetime import datetime
 import locale
 from datetime import timedelta
-from time import sleep
-from enum import Enum
-from collections import Counter
 import os,sys
 from itertools import tee
-import gzip,time
+import gzip,json
 import logging
 from logging.handlers import RotatingFileHandler
 import subprocess
@@ -125,7 +122,16 @@ class OSTools():
             level=logging.DEBUG,
             format='%(asctime)s %(levelname)s : %(message)s'
         )
-
+    '''
+    @classmethod
+    def readConfig(cls,appName):
+        folder= OSTools.joinPathes(OSTools().getHomeDirectory(),".config",appName)
+        cls.ensureDirectory(folder)
+        fn=appName+".json"
+        cfg = OSTools.joinPathes(folder,fn)
+        with open(cfg, "r") as jr:
+            dic = json.load(jr)
+    '''        
 
     @classmethod
     def setLogLevel(cls,levelString):
@@ -226,8 +232,8 @@ class XLSAdapter():
         #return "%s > %s"%(self.fromDate(),self.toDate())
         return "%s > %s"%(self.row[1],self.row[2])
     
-    def _isStringTime(self, object):
-        return isinstance(object, str)
+    def _isStringTime(self, data):
+        return isinstance(data, str)
 
 class OmocAdapter(XLSAdapter):
     FIELDS = (1,2,3,5,6) #A=0
@@ -350,6 +356,7 @@ class WorkSheetComparer():
 
     def compare(self):
         dic={} #Date ->bookingEntry
+        self.data=[] #Weekday Date, omoc,LKR
         for adapter in self.omocSheet:
             be = dic.get(adapter.fromRoundDate(),BookingEntry())
             be.omc=adapter

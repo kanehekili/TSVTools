@@ -13,11 +13,12 @@ from time import sleep
 from _datetime import datetime
 
 '''
+01.08.24 Add TARGET to config.json                  0.9.3
 31.07.24 Accept datetime and time string objects    0.9.2
 23.03.24 Stable implementation                      0.9.1  
 '''
 
-VERSION="0.9.2"
+VERSION="0.9.3"
 WIN=None
 
 '''
@@ -206,10 +207,10 @@ class MainFrame(QtWidgets.QMainWindow):
         self.model.readOmoc(self.omocFile)
         self.model.readLkr(self.lkrFile)
         self.model.compare()
-        hp = OSTools.getHomeDirectory()
+        #hp = OSTools.getHomeDirectory()
+        hp = self.readTargetFolder()
         loc = self.uiTypeCombo.currentText()
         fn = datetime.now().strftime("%Y-%m-%d-")+loc
-        
         self.tmpSaveTarget=OSTools.joinPathes(hp,fn+".xlsx")
         wr=WorkSheetWriter(self.tmpSaveTarget)
         wr.export(loc,("Tag","Datum","OMOC","LKR"),self.model.data)
@@ -289,6 +290,18 @@ class MainFrame(QtWidgets.QMainWindow):
         with open(cfg, 'w') as jsonFile:
             json.dump(self.configJson, jsonFile)
 
+    def readTargetFolder(self):
+        if not self.configJson:
+            self.configJson={}  
+        cfg = self._configPath()
+        if OSTools.fileExists(cfg):
+            with open(cfg) as jsonFile:
+                self.configJson = json.load(jsonFile)
+        hp = OSTools.getHomeDirectory()
+        emerg = OSTools.joinPathes(hp,"Documents")
+        return self.configJson.get("TARGET",emerg)       
+               
+
     def _configPath(self):
         folder = OSTools.joinPathes(OSTools().getHomeDirectory(), ".config")
         OSTools.ensureDirectory(folder)
@@ -347,6 +360,7 @@ def main(args):
         wd = OSTools.getLocalPath(__file__)
         OSTools.setMainWorkDir(wd)
         OSTools.setupRotatingLogger("Omoc", args.debug)
+        
         Log = OCModel.Log
         if args.debug:
             OSTools.setLogLevel("Debug")
