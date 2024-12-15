@@ -8,8 +8,8 @@ firefox seems to be much faster..
 '''
 import signal,sys
 sys.path.append('/home/matze/git/TSVAccess/src')
-
-# sys.path.append('/opt/tsvserver/')
+#sys.path.append('/opt/tsvserver')
+#sys.path.append('/opt/TSVAccess')
 from selenium import webdriver
 import io,time
 from PIL import Image
@@ -54,7 +54,7 @@ class Watchdog():
         while self.running:
             try:
                 Log.info("Check url")
-                rawImg = self.scraper.imageOfURL(Watchdog.URL)
+                rawImg = self.scrapeImage()
                 result = self.analyze(rawImg)
                 if result:
                     self.mailError(result)   
@@ -70,6 +70,14 @@ class Watchdog():
             Log.info("Pending...")
             DaemonEvt.wait(Watchdog.INTERVAL)
         Log.info("Stopping daemon...")    
+
+    def scrapeImage(self):
+        try:
+            self.scraper.startUp()
+            rawImg = self.scraper.imageOfURL(Watchdog.URL)
+            return rawImg
+        finally:
+            self.scraper.shutDown()
 
     def mailError(self,attachment):
         if self.mode == self.MODE_OK:
@@ -90,15 +98,12 @@ class Watchdog():
         colors.append(img.getpixel((223,291)))
         colors.append(img.getpixel((230,291)))
     
-        #test on error
-        timestr = time.strftime("%Y-%m-%d-%H%M%S")
-        fn = "trox"+timestr+".png"
-        #img.save("trox"+timestr+".png")
-        return (rawBuffer,fn)
-    
         for pick in colors:
             if pick[0]+pick[1]+pick[2] < limit:
                 Log.warning("Error detected:%s",pick)
+                timestr = time.strftime("%Y-%m-%d-%H%M%S")
+                fn = "trox"+timestr+".png"
+                #img.save("trox"+timestr+".png")                
                 return (rawBuffer,fn)
             else:
                 Log.debug("Check ok:%s",pick)
@@ -113,6 +118,9 @@ class Watchdog():
 
 class Scraper():
     def __init__(self,threadingEvent):
+        self.threadingEvent = threadingEvent
+    
+    def startUp(self):
         '''
         Set up a Selenium WebDriver (e.g., using Chrome) on raspi...
         should work with 4.10.0 OOTB
@@ -124,8 +132,7 @@ class Scraper():
         options = Options()
         options.add_argument("--headless")
         self.driver = webdriver.Firefox(options=options)     
-        self.actions = ActionChains(self.driver)   
-        self.threadingEvent = threadingEvent
+        self.actions = ActionChains(self.driver)           
     
     def imageOfURL(self,url):
         self.driver.get(url)
@@ -136,6 +143,9 @@ class Scraper():
         self.threadingEvent.wait(5)
         rawImg = self.driver.get_screenshot_as_png()
         return rawImg
+
+    def shutDown(self):
+        self.driver. quit() 
 
 if __name__ == '__main__':
     argv = sys.argv
