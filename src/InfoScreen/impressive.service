@@ -1,0 +1,11 @@
+/etc/systemd/system/impressive.service 
+[Unit]
+Description=start impressive slide show
+
+[Service]
+Restart=on-failure
+RestartSec=5s
+ExecStart=impressive  -a 5 --clock -M -w -s --fontsize 20 --background FFE2E2 -L margin=16,alpha=100,time=BL,status=BR @/home/jim/slides/slidelist.txt
+
+[Install]
+WantedBy=multi-user.target
