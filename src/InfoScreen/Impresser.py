@@ -4,9 +4,17 @@ Clent front end to configure the remote - embedded - impression service on raspi
 Adjust remote paths.
 This app supports the configuration of "impressive" by Martin Fiedler from a remote client. 
 Data will be synced by rsync, thumbs are created by magic.
-This code will not ever run on windows!.
+This code is not intended to run on windows
 @author: kanehekili
 '''
+
+'''
+Icons by 
+Tactice - Cristal Intensce Icons Pack under the 
+CC Attribution-Noncommercial-No Derivate 4.0 Licence 
+Ampeross - Qetto 2 Icons Theme
+'''
+
 import sys,time
 import shutil
 import subprocess,traceback, argparse
@@ -234,17 +242,30 @@ class MainApp(QWidget):
         self.btnRemove.setIcon(QtGui.QIcon("./icons/Del.png"))
         self.btnAdd = QPushButton()
         self.btnAdd.setIcon(QtGui.QIcon("./icons/Add.png"))
+        self.btnCopy = QPushButton()
+        self.btnCopy.setIcon(QtGui.QIcon("./icons/Copy.png"))
+
         
-        for btn in [self.btnUp, self.btnDown, self.btnRemove]:
+        for btn in [self.btnUp, self.btnDown, self.btnRemove,self.btnCopy]:
             btn.setEnabled(False)
         
         self.btnUp.clicked.connect(self.moveUp)
         self.btnDown.clicked.connect(self.moveDown)
         self.btnRemove.clicked.connect(self.removeItem)
         self.btnAdd.clicked.connect(self.addItem)
+        self.btnCopy.clicked.connect(self.copyItem)
+
+
+        self.btnUp.setToolTip("Eins hoch")
+        self.btnDown.setToolTip("Eins runter")
+        self.btnRemove.setToolTip("Löschen")
+        self.btnAdd.setToolTip("Hinzufügen Dialog")
+        self.btnCopy.setToolTip("Kopieren")
+
         
         buttonLayout.addWidget(self.btnUp)
         buttonLayout.addWidget(self.btnDown)
+        buttonLayout.addWidget(self.btnCopy)
         buttonLayout.addWidget(self.btnRemove)
         buttonLayout.addWidget(self.btnAdd)
         buttonLayout.addStretch()
@@ -266,14 +287,16 @@ class MainApp(QWidget):
         lighter = color.darker(90)
         self.statusbar.setStyleSheet("QStatusBar { border: 1px inset %s; border-radius: 3px; background-color:%s;} "%(darker.name(),lighter.name()));
         self.statusbar.setSizeGripEnabled(False)
-
+        self.statusbar.setToolTip("Info und Fehler Anzeige")
         #bottomLayout.addWidget(self.statusbar)
         
         saveCancelLayout = QHBoxLayout()
         self.btnSave = QPushButton("Save")
         self.btnSave.setIcon(QtGui.QIcon("./icons/OK.png"))
+        self.btnSave.setToolTip("Speichern & Ende")
         self.btnCancel = QPushButton("Cancel")
         self.btnCancel.setIcon(QtGui.QIcon("./icons/Del.png"))
+        self.btnCancel.setToolTip("Ende")
         #saveCancelLayout.addStretch()
         saveCancelLayout.addWidget(self.statusbar)
         saveCancelLayout.addWidget(self.btnCancel)
@@ -294,6 +317,7 @@ class MainApp(QWidget):
         self.btnUp.setEnabled(has_selection)
         self.btnDown.setEnabled(has_selection)
         self.btnRemove.setEnabled(has_selection)
+        self.btnCopy.setEnabled(has_selection)
     
     def moveUp(self):
         row = self.listWidget.currentRow()
@@ -319,6 +343,13 @@ class MainApp(QWidget):
         file_path, _ = file_dialog.getOpenFileName(self, "Auswahl", "", "Bilder & PDFs (*.png *.jpg *.jpeg *.bmp *.gif *.pdf)")
         if file_path:
             self.listWidget.addItemToList(file_path)
+    
+    def copyItem(self):
+        row = self.listWidget.currentRow()
+        item = self.listWidget.item(row).clone()
+        #txt = item.text()
+        #self.listWidget.addItemToList(txt)
+        self.listWidget.insertItem(row - 1, item)        
     
     def saveList(self):
         #Save stuff to target. Display Message no buttons or progessbar...
