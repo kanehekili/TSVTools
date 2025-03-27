@@ -3,11 +3,9 @@ Encoding=UTF-8
 Version=1.0
 Type=Application
 Name=Impressor
-#a indicates initial activity index (Krafraum,Gym, Sauna)
 Exec=python3 /home/think/git/TSVTools/src/InfoScreen/Impresser.py
-#Exec=python3 /opt/TSVAccess/TsvMemberControl.py -k 0
 Comment=Infoscreen Bearbeitung
 Icon=/home/think/git/TSVTools/src/InfoScreen/icons/filmstrip.png
-Categories=GTK;
+Categories=GTK,QT,Utility;
 Terminal=false
 StartupNotify=true
