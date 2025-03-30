@@ -46,7 +46,10 @@ OSTools.ensureDirectory(LOCAL_THUMBS_DIR) #Path promblem on deploy
 
 def create_thumbnail(file_path, thumb_path):
     try:
-        subprocess.run(["magick", file_path, "-thumbnail", "250", thumb_path], check=True)
+        subprocess.run(["magick", f"{file_path}[0]", "-thumbnail", "250", 
+                        "-background", "white",        # Set background color
+                         "-alpha", "remove",            # Remove transparency
+                          "-flatten", thumb_path], check=True)
     except subprocess.CalledProcessError:
         print(f"Failed to create thumbnail for {file_path}")
 
@@ -88,7 +91,7 @@ class ThumbnailListWidget(QListWidget):
                 if line:
                     self.addItemToList(line)
     
-    def addItemToList(self, file_path):
+    def addItemToList(self, file_path,pos=-1):
         filename = OSTools.getFileNameOnly(file_path)
         if filename != file_path: #no thumbnail
             #check if file exists...
@@ -109,7 +112,10 @@ class ThumbnailListWidget(QListWidget):
         icon = QIcon(QPixmap(thumb_path)) if OSTools.fileExists(thumb_path) else QIcon() #need a question mark icon
         item.setText(displayName)
         item.setIcon(icon)
-        self.addItem(item)
+        if pos == -1:
+            self.addItem(item)
+        else:
+            self.insertItem(pos, item)
     
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
@@ -125,9 +131,12 @@ class ThumbnailListWidget(QListWidget):
         if event.mimeData().hasUrls():
             for url in event.mimeData().urls():
                 file_path = url.toLocalFile()
+                drop_pos = event.position().toPoint()
+                target_index = self.indexAt(drop_pos).row()
+                self.addItemToList(file_path,target_index)
                 #valid_extensions = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".pdf")
                 #if os.path.isfile(file_path) and file_path.lower().endswith(valid_extensions):
-                self.addItemToList(file_path)
+                
                 #save file to dedicated folder?
                 #save thumbnail to dedicated forlder?
             self.repaint()
