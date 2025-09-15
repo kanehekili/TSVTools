@@ -18,7 +18,7 @@ slideListPath = os.path.join(slideDir,slidelistFile)
 # Read allowed filenames from slidelist.txt
 with open(slideListPath, "r") as f:
     allowed_files = {line.strip() for line in f}
-#allowed_files is a set. add on, update many
+#allowed_files is a set. add one, update many
 immutables = []
 for file in os.listdir(slideDir):
     if file.endswith(".txt"):

@@ -1,0 +1,14 @@
+[Unit]
+Description=MQTT to SQLite Bridge
+After=network.target mosquitto.service
+Requires=mosquitto.service
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/MqttSqliteBridge.py
+WorkingDirectory=/var/lib/grafana
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

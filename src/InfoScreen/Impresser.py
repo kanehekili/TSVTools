@@ -16,6 +16,9 @@ Ampeross - Qetto 2 Icons Theme
 '''
 
 import sys,time
+from pathlib import Path
+rel = Path(__file__).absolute().parent.parent #in context of this git structure. 
+sys.path.append(str(rel))
 import shutil
 import subprocess,traceback, argparse
 from PyQt6.QtWidgets import (
@@ -51,7 +54,7 @@ def create_thumbnail(file_path, thumb_path):
                          "-alpha", "remove",            # Remove transparency
                           "-flatten", thumb_path], check=True)
     except subprocess.CalledProcessError:
-        print(f"Failed to create thumbnail for {file_path}")
+        Log.warning("Failed to create thumbnail for %s",file_path)
 
 def sync_files(src_dir, target_dir):
     rsync_command = [
@@ -62,7 +65,9 @@ def sync_files(src_dir, target_dir):
         subprocess.run(rsync_command, check=True)
         print("Sync completed successfully.")
     except subprocess.CalledProcessError as e:
-        print(f"Error during sync: {e}")
+        Log.error("Error during sync:%s",{e})
+        return "Gerät nicht erreicht"
+    return None
 
 # Example usage
 #local_directory = "/path/to/local/directory/"
@@ -98,6 +103,12 @@ class ThumbnailListWidget(QListWidget):
             dest_path = OSTools.joinPathes(LOCAL_SLIDE_DIR, filename)
             if not OSTools.fileExists(dest_path):
                 shutil.copy(file_path, dest_path)
+            file_size = OSTools.getSizeMB(file_path)
+            print(f"Test {file_path} with size: {file_size}")
+            if file_size > 5.1:
+                #raise Exception("Datei ist größer als 5MB")
+                WIN.getErrorDialog("Fehler", "Datei ist größer als 5MB", "Bitte das Bild verkleinern").show()
+                return False
         
         item = QListWidgetItem()
         #truncName = os.path.splitext(filename)[0]
@@ -116,6 +127,7 @@ class ThumbnailListWidget(QListWidget):
             self.addItem(item)
         else:
             self.insertItem(pos, item)
+        return True
     
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
@@ -133,7 +145,10 @@ class ThumbnailListWidget(QListWidget):
                 file_path = url.toLocalFile()
                 drop_pos = event.position().toPoint()
                 target_index = self.indexAt(drop_pos).row()
-                self.addItemToList(file_path,target_index)
+                if not self.addItemToList(file_path,target_index):
+                    event.ignore()
+                    return
+                
                 #valid_extensions = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".pdf")
                 #if os.path.isfile(file_path) and file_path.lower().endswith(valid_extensions):
                 
@@ -179,19 +194,22 @@ class MainApp(QWidget):
         self.listWidget.loadFileList() 
         
             
-    def loadData(self):
+    def loadData(self,worker):
         Log.info("loading data from remote device:%s",self.beamer)
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         #connect to device. scp thumbs & sliderlister
         #time.sleep(5)
         #1)rsync -avz --update --progress beamer1:/home/jim/slides/slidelist.txt /home/matze/git/TSVTools/src/InfoScreen/list/
         #2) rsync -avz --update --progress beamer1:/home/jim/slides/thumbs /home/matze/git/TSVTools/src/InfoScreen/list/
-
-        sync_files(f"{self.beamer}:{REMOTE_SLIDER_FILE}",LOCAL_SLIDE_DIR+"/")
-        sync_files(f"{self.beamer}:{REMOTE_THUMBS_FOLDER}",LOCAL_SLIDE_DIR+"/")
+        
+        errorMSg = sync_files(f"{self.beamer}:{REMOTE_SLIDER_FILE}",LOCAL_SLIDE_DIR+"/")
+        if errorMSg:
+            worker.msg= errorMSg
+        else:
+            sync_files(f"{self.beamer}:{REMOTE_THUMBS_FOLDER}",LOCAL_SLIDE_DIR+"/")
         QApplication.restoreOverrideCursor()
     
-    def saveData(self):
+    def saveData(self,worker):
         Log.info("saving data to remote device:%s",self.beamer)
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         with open(LOCAL_SLIDER_LIST_FILE, "w") as f:
@@ -199,27 +217,12 @@ class MainApp(QWidget):
                 f.write(self.listWidget.item(index).text() + "\n")        
         #connect to device. rsync thumbs & sliderlister
         #rsync -avzn --update --progress /home/matze/git/TSVTools/src/InfoScreen/list/ beamer1:/home/jim/slides/
-        self.cleanUpFiles()
         srcFolder = OSTools.joinPathes(base,SLIDES_DIR+"/")
-        sync_files(srcFolder,f"{self.beamer}:{REMOTE_SLIDER_FOLDER}/")
-        
-        
+        errorMsg=sync_files(srcFolder,f"{self.beamer}:{REMOTE_SLIDER_FOLDER}/")
+        if errorMsg:
+            worker.msg=errorMsg
         QApplication.restoreOverrideCursor()
     
-    def cleanUpFiles(self):
-        #remove all slides and thumbs, that are NOT in the slider list
-        validFiles=[]
-        with open(LOCAL_SLIDER_LIST_FILE, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    fileOnly = OSTools.getPathWithoutExtension(line)
-                    print(line,"[",fileOnly,"]")
-                    validFiles.append(fileOnly)
-        for fn in validFiles:
-            pass            
-                    
-        
     def _saveDone(self,worker):
         msg = worker.msg
         if not msg: 
@@ -430,7 +433,7 @@ class LongRunningOperation(QThread):
 
     def run(self):
         try:
-            self.function(*self.arguments)
+            self.function(*self.arguments,self)
         except Exception as ex:
             Log.exception("***Error in LongRunningOperation***")
             self.msg = "Error while converting: "+str(ex)
@@ -451,7 +454,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     if WIN is not None:
         infoText = str(exc_value)
         detailText = "*".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-        WIN.getErrorDialog("WTF Fehler", infoText, detailText).show()
+        WIN.getErrorDialog("Fehler", infoText, detailText).show()
         Log.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 def parse():

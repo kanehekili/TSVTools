@@ -126,6 +126,12 @@ def countFiles(aPath,searchString):
             cnt+=1
     return cnt
 
+def getSizeMB(filePath):
+    if fileExists(filePath):
+        fs=os.path.getsize(filePath)
+        return fs/(1024.0 * 1024.0)
+    return 0.0
+
 
 #will not work in windows
 def checkIfInstanceRunning(moduleName):
