@@ -35,10 +35,33 @@ Reads two files (comparable to "Meld") and produces a data set of differences.
 ##### WorkSheetWriter
 Gets the data from the comparer and writes the results into a xslx file.
 
-## Additional Libs:
+#### Additional Libs:
 pip install openpyxl
 
 Runs on Linux and Windoze (no installer)
+
+###Impresser - Front End for Impressive Slide Show
+![Screenshot](https://github.com/kanehekili/TSVTools/blob/main/Impressor.png)
+Impresser will copy your local files to a remote device which runs Martin Fiedlers "Impressive" Software. We are using rsync via ssh to sync the data with the remove device.
+
+The remote device needs to have a ssh key in order to connect. 
+
+Impressive runs on a Raspi Zero2W with RaspianOS bookworm. The target needs to have a "slides" folder in the home directory. Thumbnails are synced, pictures are currently added, but not removed (WIP) 
+
+####Prerequisites Impressive
+* apt install python3-pygame python3-pil mupdf-tools libegl-dev
+* apt install impressive --no-install-recommends
+
+####Prerequisites Impresser
+* python-pyqt6 or equivalent
+* rsync 
+
+####Caveats Impressive (the slide show)
+* The clock switch does not work with the framebuffer 
+* Does not run on Bullseye, but on Bookworm. 
+* X11 has to be installed - but is not running. 
+* This code has NOT been tested with Windows
+* Current Version has deprecation errors.
 
 
 ### More small apps will follow
